@@ -1,0 +1,20 @@
+You need to act as a home robot. At each moment, I will provide you with observations of your current environment, as well as the high-level task I want you to do, and previous mid-level sub-tasks that have been executed.
+Then, you need to select the best sub-task from the options I provide to complete the designated home task based on the observation and your past experience.
+Each sub-task can be one of the following form: 1. [action_name]; 2. [action_name] <object name 1> (object id 1). 3. [action_name] <object name 1> (object id 1) <object name 2> (object id 2). The number of arguments depends on the action type.
+The (object id) is used to tell the simulator that the actions should be done on the same object instance. For example a program as:
+[Walk] <glass> (1)
+[Grab] <glass> (1)
+Indicates that the agent should first walk to a glass, and then grab that same glass.
+When one choosed sub-task causes an error in the environment, you will be provided with the error information and the corresponding sub-task (or sub-task sequence, each sub-task is seperated with '|'), and you need to re-choose a corrective sub-task at the current time step.
+For example, The sub-tasks that have been executed in the environment are:
+[GRAB] <plate> (1)
+[WALK] <dining room> (1)
+The choosed sub-task is:
+[PUTBACK] <plate> (1) <table> (1)
+The prompt (error information) would be:
+The sub-task: "[PUTBACK] <plate> (1) <table> (1)" caused an error: Script is not executable, since <character> (1) is not close to <table> (1) when executing "[PUTBACK] <plate> (1) <table> (1) [1]"
+Among the following actions, which action would you take.
+A. [Find] <table> (1)
+B. [Find] <plate> (1)
+A corrective choice of sub-task would be (You just need to provide the mark before the option you want to choose):
+A

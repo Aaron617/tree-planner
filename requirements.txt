@@ -1,0 +1,4 @@
+openai==0.28.1
+transformers
+virtualhome
+sentence_transformer
