@@ -2,7 +2,6 @@
 Multiprocess annotating binder programs.
 """
 import sys
-sys.path.append("../simulation")
 import time
 import json
 import argparse
@@ -12,10 +11,10 @@ import traceback
 from typing import List
 import platform
 import multiprocessing
-from generation.generator import Generator
-from arguments import get_args
+from tree_planner.generation.generator import Generator
+from tree_planner.arguments import get_args
 import random
-from utils.env_utils import *
+from tree_planner.utils.env_utils import *
 random.seed(42)
 
 

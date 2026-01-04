@@ -3,23 +3,33 @@ import json
 import sys
 import os
 ROOT_DIR = os.path.join(os.path.dirname(__file__))
-sys.path.append(f'{ROOT_DIR}/../../simulation')
-sys.path.append(f"{ROOT_DIR}/../../dataset_utils/")
-sys.path.append(f"{ROOT_DIR}/../../")
-# sys.path.append('../../simulation')
-# sys.path.append("../../dataset_utils/")
-import evolving_graph.utils as utils
-from evolving_graph.execution import Relation, State
-from evolving_graph.scripts import read_script, script_to_list_string, read_script_from_list_string, read_script_from_string
-from evolving_graph.execution import ScriptExecutor
-from evolving_graph.environment import EnvironmentGraph, EnvironmentState
-from evolving_graph.preparation import AddMissingScriptObjects, AddRandomObjects, ChangeObjectStates, \
-    StatePrepare, AddObject, ChangeState, Destination
-import add_preconds
-from evolving_graph.check_programs import modify_objects_unity2script
-from evolving_graph.custom_graph_dict_helper import custom_graph_dict_helper
-from evolving_graph.custom_executor import CustomScriptExecutor
-from sampling_grounding_deciding.utils.data_utils import del_graph
+
+try:
+    from virtualhome.simulation.evolving_graph import utils as vh_utils
+    from virtualhome.simulation.evolving_graph.execution import Relation, State
+    from virtualhome.simulation.evolving_graph.scripts import read_script, script_to_list_string, read_script_from_list_string, read_script_from_string
+    from virtualhome.simulation.evolving_graph.execution import ScriptExecutor
+    from virtualhome.simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState
+    from virtualhome.simulation.evolving_graph.preparation import AddMissingScriptObjects, AddRandomObjects, ChangeObjectStates, \
+        StatePrepare, AddObject, ChangeState, Destination
+except ImportError:
+    from simulation.evolving_graph import utils as vh_utils
+    from simulation.evolving_graph.execution import Relation, State
+    from simulation.evolving_graph.scripts import read_script, script_to_list_string, read_script_from_list_string, read_script_from_string
+    from simulation.evolving_graph.execution import ScriptExecutor
+    from simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState
+    from simulation.evolving_graph.preparation import AddMissingScriptObjects, AddRandomObjects, ChangeObjectStates, \
+        StatePrepare, AddObject, ChangeState, Destination
+
+# add_preconds module is not available in the standard VirtualHome
+# import add_preconds
+# from virtualhome.simulation.evolving_graph.check_programs import modify_objects_unity2script
+
+from tree_planner.evolving_graph_patches.custom_graph_dict_helper import custom_graph_dict_helper
+# from tree_planner.evolving_graph_patches.custom_executor import CustomScriptExecutor
+from tree_planner.utils.data_utils import del_graph
+from tree_planner.utils.deciding_graph import Deciding_Tree
+from tree_planner.utils.env_utils import grounded_deciding_prompt
 
 
 # get script prepared for execution (map the id in script (like (1) or (2)) to the exact object id ((237)) in the environment)
@@ -57,13 +67,13 @@ def exec_script(script_str, graph_dict, verbose=False):
     # except add_preconds.ScriptFail as e:
     #     return False, None, [], str(e)
     # prepare for exec
-    try:    
+    try:
         prepare_for_execution(graph_dict, script)
     except Exception as e:
         return False, None, None, str(e)
     # exec
     graph = EnvironmentGraph(graph_dict)
-    name_equivalence = utils.load_name_equivalence()
+    name_equivalence = vh_utils.load_name_equivalence()
     executor = ScriptExecutor(graph, name_equivalence)
     info = executor.info
     state = EnvironmentState(executor.graph, executor.name_equivalence, instance_selection=True)
@@ -160,9 +170,6 @@ def construct_gd_error_info(past_error_info, error_info, step):
         return cur_error_info
 
 
-from sampling_grounding_deciding.utils.deciding_graph import Deciding_Tree
-from sampling_grounding_deciding.utils.env_utils import grounded_deciding_prompt
-
 def grounded_exec(args, script_str_list, graph_dict, task, generator, g_eid, goal_conditions, verbose=False):
     max_retry_times, retry_cnt = args.retry_times, 0    # when retry_times == 0, do not do error correction
     end_of_execution = ''   # choose in ['success', 'failed']
@@ -170,7 +177,7 @@ def grounded_exec(args, script_str_list, graph_dict, task, generator, g_eid, goa
     # prepare environment and executor
     init_graph_dict = copy.deepcopy(graph_dict)
     graph = EnvironmentGraph(graph_dict)
-    name_equivalence = utils.load_name_equivalence()
+    name_equivalence = vh_utils.load_name_equivalence()
     executor = ScriptExecutor(graph, name_equivalence)
     info = executor.info
     state = EnvironmentState(executor.graph, executor.name_equivalence, instance_selection=True)
@@ -292,7 +299,7 @@ def grounded_exec(args, script_str_list, graph_dict, task, generator, g_eid, goa
                 return True, state, graph_state_list, '', plan, usage_all, _traceback, retry_cnt, node.idx_list
             else:
                 return False, state, graph_state_list, return_error_info, plan, usage_all, _traceback, retry_cnt, []
-            
+
 
 if __name__ == "__main__":
     script_str = [
@@ -316,7 +323,7 @@ if __name__ == "__main__":
                 break
     script = read_script_from_list_string(script_str)
     graph = EnvironmentGraph(graph_dict)
-    name_equivalence = utils.load_name_equivalence()
+    name_equivalence = vh_utils.load_name_equivalence()
     executor = ScriptExecutor(graph, name_equivalence)
     state = EnvironmentState(executor.graph, executor.name_equivalence, instance_selection=True)
     graph_state_list = []

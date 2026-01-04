@@ -1,9 +1,17 @@
-import sys
-# sys.path.append("../../simulation/evolving_graph")
-from .utils import graph_dict_helper
+"""
+Custom graph_dict_helper for Tree-Planner.
+
+This module extends VirtualHome's graph_dict_helper with custom mapping logic.
+"""
+try:
+    from virtualhome.simulation.evolving_graph.utils import graph_dict_helper
+except ImportError:
+    from simulation.evolving_graph.utils import graph_dict_helper
+
 import copy
 import random
 random.seed(2)
+
 
 class custom_graph_dict_helper(graph_dict_helper):
     def __init__(self, properties_data=None, object_placing=None, object_states=None, max_nodes=300):

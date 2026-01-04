@@ -3,10 +3,39 @@ import json
 import re
 import sys
 ROOT_DIR = os.path.join(os.path.dirname(__file__))
-# sys.path.append("../../simulation")
-sys.path.append(f'{ROOT_DIR}/../../')
-from simulation.evolving_graph.scripts import parse_script_line
-from sampling_grounding_deciding.utils.retriever import Retriever
+
+from tree_planner.utils.retriever import Retriever
+
+# Lazy import VirtualHome to avoid import errors when not installed
+def _get_parse_script_line():
+    """Lazy import parse_script_line from VirtualHome."""
+    try:
+        from virtualhome.simulation.evolving_graph.scripts import parse_script_line
+        return parse_script_line
+    except ImportError:
+        # Fallback for non-standard installation
+        try:
+            sys.path.append('../../simulation')
+            from evolving_graph.scripts import parse_script_line
+            return parse_script_line
+        except ImportError:
+            raise ImportError(
+                "VirtualHome is not installed. Please install it using:\n"
+                "  uv pip install virtualhome\n"
+                "Or: pip install virtualhome\n"
+                "Or: pip install git+https://github.com/xavierpuigf/virtualhome.git"
+            )
+
+# Cache the imported function
+_parse_script_line = None
+
+def get_parse_script_line():
+    """Get parse_script_line function with lazy loading."""
+    global _parse_script_line
+    if _parse_script_line is None:
+        _parse_script_line = _get_parse_script_line()
+    return _parse_script_line
+
 
 # ignore
 def parse_woconds(file_path):
@@ -24,6 +53,7 @@ def parse_generation(g):
 # @mengkang whether to use pre-conditions / no
 def check_action_format(action_str):
     try:
+        parse_script_line = get_parse_script_line()
         data = parse_script_line(action_str, 0)
     except Exception as e:  # Unknown action
         info = str(e)
@@ -76,7 +106,7 @@ def parse_language_from_action_script(action_script):
 
     if '[putback]' in action_script.lower() or '[putin]' in action_script.lower():
         obj_name2 = re.findall(r"\<([A-Za-z0-9_]+)\>", action_script)[1]
-        obj_id2 = re.findall(r"\(([A-Za-z0-9_]+)\)", action_script)[1]
+        obj_id2 = re.findall(r"\(([A-Za-z0-9_]+)\]", action_script)[1]
         obj_id2 = int(obj_id2)
     else:
         obj_name2 = None

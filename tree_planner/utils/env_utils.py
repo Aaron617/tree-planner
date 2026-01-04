@@ -5,13 +5,15 @@ import random
 import sys
 ROOT_DIR = os.path.join(os.path.dirname(__file__))
 # print(ROOT_DIR)
-sys.path.append(f'{ROOT_DIR}/../../simulation')
-sys.path.append(f'{ROOT_DIR}/../../')
-import evolving_graph.utils as utils
-from evolving_graph.environment import EnvironmentGraph, EnvironmentState, Relation, State
-# import simulation.evolving_graph.utils as utils
-# from simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState, Relation, State
-# from simulation.evolving_graph.execution import Relation, State
+
+try:
+    from virtualhome.simulation.evolving_graph import utils as vh_utils
+    from virtualhome.simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState, Relation, State
+    from virtualhome.simulation.evolving_graph.scripts import read_script_from_list_string
+except ImportError:
+    from simulation.evolving_graph import utils as vh_utils
+    from simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState, Relation, State
+    from simulation.evolving_graph.scripts import read_script_from_list_string
 
 
 # adapt from https://github.com/ShuangLI59/Pre-Trained-Language-Models-for-Interactive-Decision-Making
@@ -178,12 +180,11 @@ def translate_sub_graph_to_text(graph_dict, observation):
     return res
 
 
-from evolving_graph.scripts import Script, read_script_from_list_string
 def observation_prompt(graph_dict, action_choices): # for grounded deciding
     # observation : partial graph_dict
     script_lines = [read_script_from_list_string([c]) for c in action_choices]
     object_observation = multiple_objects_related_observation(get_object_id_list_from_script(script_lines), _mask_state(graph_dict))
-    ontology_prompt = ontology_observation_prompt(EnvironmentState(EnvironmentGraph(graph_dict), utils.load_name_equivalence(), instance_selection=True))
+    ontology_prompt = ontology_observation_prompt(EnvironmentState(EnvironmentGraph(graph_dict), vh_utils.load_name_equivalence(), instance_selection=True))
     res = ontology_prompt
     res += '\n' + translate_sub_graph_to_text(graph_dict, object_observation)
     return res
@@ -196,7 +197,7 @@ def get_env_prompt(graph_dict):
     room_num_eng = num_to_eng[len(available_rooms_in_graph)]
     room_str = ', '.join(available_rooms_in_graph)
     prompt += f'You are in a house that consists of {room_num_eng} rooms. These rooms are {room_str}.'
-    name_equivalence = utils.load_name_equivalence()
+    name_equivalence = vh_utils.load_name_equivalence()
     state = EnvironmentState(EnvironmentGraph(graph_dict), name_equivalence)
     prompt += '\n' + ontology_observation_prompt(state) + '\n' + available_object_prompt(graph_dict)
     return prompt
@@ -267,4 +268,3 @@ def grounded_deciding_prompt(args, graph_dict, task, action_choices, past_action
     else:
         prompt = prompt + '\n' + error_info + f'\n{action_prompt}' + '\nA corrective choice of sub-task would be:\n'
     return prompt
-

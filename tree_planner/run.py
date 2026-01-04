@@ -1,15 +1,15 @@
 import json
 import os
-from utils.data_utils import *
-from utils.exec_utils import *
+from tree_planner.utils.data_utils import *
+from tree_planner.utils.exec_utils import *
 
-ROOT_DIR = os.getcwd()
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 print(ROOT_DIR)
 
 
 os.makedirs(f"../dataplace/generation_results", exist_ok=True)
 
-plan_generation_prompt_path = "./prompt/plan_generation_prompt.txt"
+plan_generation_prompt_path = os.path.join(ROOT_DIR, "prompt/plan_generation_prompt.txt")
 
 
 engine = 'text-davinci-003'
@@ -28,11 +28,11 @@ def plan_generation(data_dir, save_dir, sampling_n, postfix=''):
     retrieval_dataset = f'{data_dir}/train.json'
     dataset_name = 'val.json'
     _ = dataset_name[:-5]
-    plan_generation_prompt_path = './prompt/plan_generation_prompt.txt'
+    plan_generation_prompt_path = os.path.join(ROOT_DIR, 'prompt/plan_generation_prompt.txt')
     plan_generation_result_file = f'{engine}_{sampling_n}_{postfix}.json'
     dataset = f'{data_dir}/{dataset_name}'
     task_to_graph = f'{data_dir}/task_to_graph.json'
-    os.system(fr"""python {ROOT_DIR}/plan_generation.py    \
+    os.system(fr"""python -m tree_planner.plan_generation    \
                 --temperature {temp}    \
                 --top_p {topp}  \
                 --max_generation_tokens {max_gen}   \
@@ -72,14 +72,14 @@ def grounded_deciding(plan_generation_result_file, data_dir, save_dir, retry_tim
     sampling_n = 20
     max_gen = 50
     # n_processes = 5
-    grounded_deciding_prompt_path = './prompt/grounded_deciding_prompt.txt'
+    grounded_deciding_prompt_path = os.path.join(ROOT_DIR, 'prompt/grounded_deciding_prompt.txt')
     # retry_times = 10    # 0 no error correction else
     # retry_times = 0
     grounded_deciding_result_file = plan_generation_result_file[:-5] + f'_{retry_times}_{postfix}.json'
     post_generation_file_name = plan_generation_result_file[:-5] + '_processed.json'
     n_shots = 4
     task_to_graph = f'{data_dir}/task_to_graph.json'
-    os.system(fr"""python {ROOT_DIR}/grounded_deciding.py    \
+    os.system(fr"""python -m tree_planner.grounded_deciding    \
                 --temperature {temp}    \
                 --top_p {topp}  \
                 --max_generation_tokens {max_gen}   \

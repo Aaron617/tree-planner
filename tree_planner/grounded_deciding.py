@@ -2,7 +2,6 @@
 Multiprocess annotating binder programs.
 """
 import sys
-sys.path.append("../")
 import time
 import json
 import argparse
@@ -12,18 +11,25 @@ import traceback
 from typing import List
 import platform
 import multiprocessing
-from generation.generator import Generator
-from arguments import get_args
+from tree_planner.generation.generator import Generator
+from tree_planner.arguments import get_args
 import random
-from utils.env_utils import *
-from utils.data_utils import *
-from utils.exec_utils import *
+from tree_planner.utils.env_utils import *
+from tree_planner.utils.data_utils import *
+from tree_planner.utils.exec_utils import *
 random.seed(42)
 # env libraries
-from simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState
-from simulation.evolving_graph.scripts import read_script_from_list_string, script_to_list_string, read_script_from_string
-from simulation.evolving_graph.execution import ScriptExecutor
-import simulation.evolving_graph.utils as utils
+try:
+    from virtualhome.simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState
+    from virtualhome.simulation.evolving_graph.scripts import read_script_from_list_string, script_to_list_string, read_script_from_string
+    from virtualhome.simulation.evolving_graph.execution import ScriptExecutor
+    import virtualhome.simulation.evolving_graph.utils as utils
+except ImportError:
+    # Fallback for non-standard virtualhome installation
+    from simulation.evolving_graph.environment import EnvironmentGraph, EnvironmentState
+    from simulation.evolving_graph.scripts import read_script_from_list_string, script_to_list_string, read_script_from_string
+    from simulation.evolving_graph.execution import ScriptExecutor
+    import simulation.evolving_graph.utils as utils
 ROOT_DIR = os.path.join(os.path.dirname(__file__))
 
 
@@ -38,7 +44,7 @@ def construct_program_text(task_name, instruction=None, program=None):
     return res
 
 
-from utils.exec_utils import grounded_exec, calc_gcr
+from tree_planner.utils.exec_utils import grounded_exec, calc_gcr
 
 
 def worker_annotate(

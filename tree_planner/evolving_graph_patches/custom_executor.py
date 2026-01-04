@@ -1,8 +1,14 @@
-import sys
-from .execution import ScriptExecutor
+"""
+Custom ScriptExecutor for Tree-Planner.
+
+This module extends VirtualHome's ScriptExecutor with custom behavior.
+"""
+try:
+    from virtualhome.simulation.evolving_graph.execution import ScriptExecutor
+except ImportError:
+    from simulation.evolving_graph.execution import ScriptExecutor
+
 from typing import List
-# from scripts import Script
-from .utils import *
 
 
 # keep graph unchanged
@@ -17,4 +23,3 @@ class CustomScriptExecutor(ScriptExecutor):
         if state is None:
             return False, prev_state
         return True, state
-
