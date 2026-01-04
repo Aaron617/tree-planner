@@ -1,88 +1,186 @@
 # Tree-Planner
 
-Close-loop task planning for household activities using VirtualHome simulator.
+<div align="center">
 
-This repository contains the code for the paper: https://arxiv.org/abs/2310.08582.
+**Close-loop Task Planning for Household Activities**
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+This repository contains the code for the paper: [Tree-Planner: Close-loop Task Planning for Household Activities](https://arxiv.org/abs/2310.08582)
+
+</div>
+
+---
 
 ## Overview
 
-Tree-Planner implements AI-powered task decomposition and planning for household activities. It uses OpenAI's GPT models to generate task plans and validates them against the VirtualHome environment simulation.
+Tree-Planner implements AI-powered task decomposition and planning for household activities. It combines:
+
+- **LLM-based Plan Generation**: Uses OpenAI's GPT models to decompose high-level household tasks into executable sub-tasks
+- **Grounded Decision Making**: Validates plans against real-world constraints with error correction
+- **VirtualHome Integration**: Simulates household environments for plan validation
+- **Multi-process Support**: Parallel processing for faster plan generation
 
 ## Features
 
-- **Plan Generation**: Uses LLMs to decompose high-level household tasks into executable sub-tasks
-- **Grounded Deciding**: Validates plans against real-world constraints with error correction
-- **VirtualHome Integration**: Standard integration with VirtualHome simulator
-- **Multi-process Support**: Parallel processing for faster plan generation
-- **Cross-Platform**: Works on Linux, macOS, and Windows with uv package manager
+| Feature | Description |
+|---------|-------------|
+| 🤖 **Plan Generation** | Decomposes high-level tasks into executable sub-tasks using LLMs |
+| ✅ **Grounded Deciding** | Validates plans against environment constraints with error correction |
+| 🏠 **VirtualHome** | Full integration with VirtualHome simulator for execution |
+| ⚡ **Multi-process** | Parallel processing for faster generation |
+| 🌐 **Cross-Platform** | Works on Linux, macOS, and Windows |
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd tree-planner
+
+# Install dependencies
+uv sync
+
+# Setup VirtualHome
+uv pip install virtualhome
+uv run python setup_virtualhome.py
+
+# Test installation
+uv run python test_e2e.py
+
+# Run (requires OpenAI API key and data)
+uv run python -m tree_planner.run
+```
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.10 or higher
-- [uv](https://github.com/astral-sh/uv) package manager (recommended) or pip
+- **Python 3.10 or higher** (required by VirtualHome)
+- **[uv](https://github.com/astral-sh/uv)** package manager (recommended) or pip
+- **OpenAI API key** for plan generation
 
 ### Standard Installation
 
-1. Clone this repository:
+#### Using uv (Recommended)
+
 ```bash
+# Clone repository
 git clone <repository-url>
 cd tree-planner
-```
 
-2. Install using uv (recommended):
-```bash
+# Install dependencies
 uv sync
+
+# Setup VirtualHome
+uv pip install virtualhome
+uv run python setup_virtualhome.py
 ```
 
-Or using pip:
+#### Using pip
+
 ```bash
+# Clone repository
+git clone <repository-url>
+cd tree-planner
+
+# Install in editable mode
 pip install -e .
+
+# Setup VirtualHome
+pip install virtualhome
+python setup_virtualhome.py
 ```
 
 ### VirtualHome Setup
 
-VirtualHome is required for full execution simulation. After installing the package, run the setup script:
+The `setup_virtualhome.py` script handles:
 
-```bash
-# Install VirtualHome
-uv pip install virtualhome
-
-# Run the setup script to create necessary resource files
-uv run python setup_virtualhome.py
-```
-
-The setup script will:
-- Fix VirtualHome's `__init__.py` to make Unity simulator optional
-- Create necessary resource files (class_name_equivalence.json, properties_data.json, etc.)
+1. **Fixing VirtualHome imports**: Makes Unity simulator optional (only Python-based simulation needed)
+2. **Creating resource files**: Generates required JSON files:
+   - `class_name_equivalence.json`
+   - `properties_data.json`
+   - `object_states.json`
 
 #### Platform-Specific Notes
 
-**macOS (ARM64/M1/M2/M3)**: If you encounter build errors with opencv-python:
-```bash
-uv pip install opencv-python-headless
-uv pip install --no-deps virtualhome
-uv run python setup_virtualhome.py
+| Platform | Notes |
+|----------|-------|
+| **Linux** | Standard installation works |
+| **macOS (Intel)** | Standard installation works |
+| **macOS (ARM64)** | If opencv-python fails: <br> `uv pip install opencv-python-headless && uv pip install --no-deps virtualhome && uv run python setup_virtualhome.py` |
+| **Windows** | Standard installation works (WSL2 recommended) |
+
+## Configuration
+
+### 1. OpenAI API Key
+
+Create a `key.txt` file in the project root:
+
+```
+sk-...
+sk-...
 ```
 
-**All platforms**: The `setup_virtualhome.py` script handles creating missing resource files automatically.
+One key per line for multi-key rotation (useful for parallel processing).
+
+### 2. Data Preparation
+
+Prepare your data in the following structure:
+
+```
+dataplace/
+├── data/
+│   ├── TrimmedTestScene1_graph/
+│   │   ├── task_to_graph.json     # Task to environment mapping
+│   │   ├── train.json              # Training examples for few-shot
+│   │   └── val.json                # Validation tasks
+│   └── TrimmedTestScene2_graph/
+│       └── ...
+└── generation_results/
+    └── TrimmedTestScene*_graph/    # Results will be saved here
+```
+
+**Task format (`val.json`)**:
+```json
+[
+  {
+    "task": "Clean the kitchen",
+    "programs": {
+      "task_description": "You need to clean the kitchen...",
+      "goal_condition": [...]
+    }
+  }
+]
+```
+
+**Graph format (`task_to_graph.json`)**:
+```json
+{
+  "Clean the kitchen": {
+    "nodes": [
+      {"id": 1, "class_name": "kitchen", "category": "Rooms", ...},
+      ...
+    ],
+    "edges": [...]
+  }
+}
+```
 
 ## Usage
 
 ### Command Line
 
-Run the full pipeline:
 ```bash
+# Run full pipeline
 uv run python -m tree_planner.run
-```
 
-Or if installed:
-```bash
+# Or if installed system-wide
 tree-planner
 ```
 
-### As a Python Module
+### Python API
 
 ```python
 from tree_planner import run
@@ -91,87 +189,166 @@ from tree_planner import run
 run.main()
 ```
 
-### Without VirtualHome
+### Individual Components
 
-Core planning features work without VirtualHome:
 ```python
-from tree_planner.plan_generation import main as gen_main
-from tree_planner.generation.generator import Generator
+# Plan Generation only
+from tree_planner.plan_generation import annotate_multi_process_run
+from tree_planner.arguments import get_args
 
-# Generate plans (no execution simulation)
+args = get_args()
+results = annotate_multi_process_run(args)
+
+# Grounded Deciding
+from tree_planner.grounded_deciding import main
+main(args)
 ```
 
 ## Project Structure
 
 ```
 tree-planner/
-├── tree_planner/
-│   ├── __init__.py              # Package initialization
-│   ├── run.py                   # Main entry point
-│   ├── arguments.py             # CLI argument parser
-│   ├── plan_generation.py       # Plan generation module
-│   ├── grounded_deciding.py     # Grounded decision module (needs VH)
-│   ├── generation/
-│   │   └── generator.py         # OpenAI API wrapper
-│   ├── utils/
-│   │   ├── data_utils.py        # Data processing
-│   │   ├── env_utils.py         # Environment utilities (needs VH)
-│   │   ├── exec_utils.py        # Execution utilities (needs VH)
-│   │   ├── retriever.py         # Semantic retrieval
-│   │   └── deciding_graph.py    # Decision tree implementation
-│   ├── evolving_graph_patches/  # Custom VirtualHome extensions
-│   │   ├── custom_executor.py
+├── tree_planner/                    # Main package
+│   ├── __init__.py                  # Package initialization
+│   ├── run.py                       # Entry point
+│   ├── arguments.py                 # CLI argument parser
+│   ├── plan_generation.py           # Plan generation module
+│   ├── grounded_deciding.py         # Grounded decision module
+│   ├── generation/                  # LLM generation
+│   │   └── generator.py             # OpenAI API wrapper
+│   ├── utils/                       # Utilities
+│   │   ├── data_utils.py            # Data processing
+│   │   ├── env_utils.py             # Environment prompt generation
+│   │   ├── exec_utils.py            # Script execution
+│   │   ├── retriever.py             # Semantic similarity
+│   │   └── deciding_graph.py        # Decision tree for planning
+│   ├── evolving_graph_patches/      # VirtualHome extensions
+│   │   ├── custom_executor.py       # Custom script executor
 │   │   └── custom_graph_dict_helper.py
-│   └── prompt/                  # Prompt templates
-├── pyproject.toml               # Project configuration
-├── uv.lock                      # Dependency lock file
+│   └── prompt/                      # Prompt templates
+│       ├── plan_generation_prompt.txt
+│       ├── plan_generation_prompt_grounding.txt
+│       ├── grounded_deciding_prompt.txt
+│       └── grounded_deciding_prompt_error_correction.txt
+├── pyproject.toml                   # Project configuration
+├── uv.lock                          # Dependency lock file
+├── setup_virtualhome.py             # VirtualHome setup script
+├── test_e2e.py                      # End-to-end test
 └── README.md
 ```
 
-## Configuration
+## Algorithm Pipeline
 
-1. Create a `key.txt` file with your OpenAI API key (one per line for multi-key support)
-
-2. Prepare your data:
-   - Task descriptions in JSON format
-   - Environment graph files
-   - Task-to-graph mappings
-
-## Development
-
-### Install in Development Mode
-
-```bash
-uv sync --all-extras
+```
+Input Task (e.g., "Clean the kitchen")
+         │
+         ▼
+┌────────────────────────┐
+│   Plan Generation      │
+│   (OpenAI GPT)         │
+└────────────────────────┘
+         │
+         ▼
+   Multiple Plans
+   (sample_n = 50)
+         │
+         ▼
+┌────────────────────────┐
+│   Post-processing      │
+│   (Object translation)  │
+└────────────────────────┘
+         │
+         ▼
+┌────────────────────────┐
+│   Grounded Deciding    │
+│   (VirtualHome sim)     │
+│   - Validate actions    │
+│   - Error correction    │
+│   - Majority voting    │
+└────────────────────────┘
+         │
+         ▼
+    Executable Plan
 ```
 
-### Running Tests
+## Testing
+
+### End-to-End Test
 
 ```bash
+# Test all core components
+uv run python test_e2e.py
+```
+
+This tests:
+- Module imports
+- VirtualHome integration
+- Action format validation
+- Graph difference calculation (GCR)
+- Environment prompt generation
+- Decision tree
+- Custom graph helper
+
+### Unit Tests
+
+```bash
+# Run pytest (if tests are added)
 uv run pytest tests/
 ```
 
-### Code Formatting
+## Command-Line Arguments
 
+| Argument | Default | Description |
+|----------|---------|-------------|
+| `--temperature` | 0.8 (gen) / 0.7 (dec) | Sampling temperature |
+| `--top_p` | 0.95 (gen) / 1.0 (dec) | Top-p sampling |
+| `--sampling_n` | 50 (gen) / 20 (dec) | Number of samples |
+| `--n_processes` | 5 | Parallel processes |
+| `--n_shots` | 4 | Few-shot examples |
+| `--retry_times` | 10 | Error correction retries |
+| `--engine` | text-davinci-003 | OpenAI engine |
+
+## Troubleshooting
+
+### VirtualHome Import Errors
+
+**Problem**: `ModuleNotFoundError: No module named 'unity_simulator'`
+
+**Solution**: Run `uv run python setup_virtualhome.py`
+
+### OpenAI API Errors
+
+**Problem**: Authentication errors
+
+**Solution**:
+1. Check `key.txt` contains valid API key
+2. Verify API key has sufficient credits
+
+### Graph Execution Errors
+
+**Problem**: Scripts fail to execute
+
+**Solution**:
+1. Check `task_to_graph.json` matches your task names
+2. Verify graph has all required nodes and edges
+3. Run `uv run python test_e2e.py` to verify setup
+
+### ARM64 macOS Build Errors
+
+**Problem**: opencv-python build fails
+
+**Solution**:
 ```bash
-uv run black tree_planner/
-uv run flake8 tree_planner/
+uv pip install opencv-python-headless
+uv pip install --no-deps virtualhome
+uv run python setup_virtualhome.py
 ```
 
-## Platform-Specific Notes
+## Performance Tips
 
-### macOS (ARM64)
-- VirtualHome installation may fail due to opencv-python build issues
-- Use `opencv-python-headless` as workaround
-- Core planning features work without VirtualHome
-
-### Linux
-- All features supported
-- Recommend using conda/mamba for better dependency management
-
-### Windows
-- All features supported
-- Use WSL2 for better compatibility
+1. **Multi-key rotation**: Add multiple API keys to `key.txt` for faster parallel processing
+2. **Adjust sampling_n**: Reduce `sampling_n` for faster iteration, increase for better quality
+3. **Use GPU**: Install CUDA versions of PyTorch for faster transformer inference
 
 ## Citation
 
@@ -194,5 +371,9 @@ MIT License - see LICENSE file for details
 ## Acknowledgments
 
 - [VirtualHome](http://virtual-home.org/) - Household activity simulation platform
-- OpenAI - GPT models for plan generation
+- [OpenAI](https://openai.com/) - GPT models for plan generation
 - [uv](https://github.com/astral-sh/uv) - Fast Python package manager
+
+## Contact
+
+For questions or issues, please open a GitHub issue or contact the maintainers.
