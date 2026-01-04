@@ -41,40 +41,32 @@ Or using pip:
 pip install -e .
 ```
 
-### VirtualHome Setup (Optional)
+### VirtualHome Setup
 
-VirtualHome is required for full execution simulation. Installation may vary by platform:
+VirtualHome is required for full execution simulation. After installing the package, run the setup script:
 
-#### Linux
 ```bash
+# Install VirtualHome
 uv pip install virtualhome
+
+# Run the setup script to create necessary resource files
+uv run python setup_virtualhome.py
 ```
 
-#### macOS (Intel)
-```bash
-uv pip install virtualhome
-```
+The setup script will:
+- Fix VirtualHome's `__init__.py` to make Unity simulator optional
+- Create necessary resource files (class_name_equivalence.json, properties_data.json, etc.)
 
-#### macOS (ARM64/M1/M2/M3)
-VirtualHome has dependency build issues on ARM64. Workaround:
+#### Platform-Specific Notes
+
+**macOS (ARM64/M1/M2/M3)**: If you encounter build errors with opencv-python:
 ```bash
 uv pip install opencv-python-headless
 uv pip install --no-deps virtualhome
-uv pip install -r <(uv pip show virtualhome | grep "Requires:" | sed 's/Requires: //')
+uv run python setup_virtualhome.py
 ```
 
-Or install from local source if you have the simulation directory:
-```bash
-# Place VirtualHome simulation/ directory in project root
-# Then use local installation mode
-```
-
-#### Windows
-```bash
-uv pip install virtualhome
-```
-
-**Note**: If VirtualHome installation fails, core features (plan generation) still work. Only execution simulation requires VirtualHome.
+**All platforms**: The `setup_virtualhome.py` script handles creating missing resource files automatically.
 
 ## Usage
 
