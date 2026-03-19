@@ -57,11 +57,10 @@ This will start the close-loop task planning process using the improved VirtualH
 If you use this code in your research, please cite:
 
 ```bibtex
-@article{tree-planner-2023,
-  title={Tree-Planner: Close-loop Task Planning for Household Activities},
-  author={...},
-  journal={...},
-  year={2023},
-  url={https://arxiv.org/abs/2310.08582}
+@article{hu2023tree,
+  title={Tree-planner: Efficient close-loop task planning with large language models},
+  author={Hu, Mengkang and Mu, Yao and Yu, Xinmiao and Ding, Mingyu and Wu, Shiguang and Shao, Wenqi and Chen, Qiguang and Wang, Bin and Qiao, Yu and Luo, Ping},
+  journal={arXiv preprint arXiv:2310.08582},
+  year={2023}
 }
 ```
